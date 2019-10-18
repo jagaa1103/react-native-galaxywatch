@@ -63,8 +63,11 @@ dependencies {
     // https://github.com/facebook/react-native/blob/0.61-stable/template/android/app/build.gradle#L192
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'
-    implementation files('src/libs/accessory-v2.6.1.jar')
-    implementation files('src/libs/sdk-v1.0.0.jar')
+//    implementation files('src/libs/accessory-v2.6.1.jar')
+//    implementation files('src/libs/sdk-v1.0.0.jar')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation files('libs/accessory-v2.6.1.jar')
+    implementation files('libs/sdk-v1.0.0.jar')
 }
 
 def configureReactNativePom(def pom) {
