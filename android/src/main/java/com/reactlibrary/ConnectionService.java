@@ -1,7 +1,6 @@
 package com.reactlibrary;
 
 import android.content.Context;
-import android.content.ServiceConnection;
 import android.util.Log;
 
 import com.samsung.android.sdk.SsdkUnsupportedException;

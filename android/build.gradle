@@ -64,7 +64,7 @@ dependencies {
     //noinspection GradleDynamicVersion
     implementation 'com.facebook.react:react-native:+'
     implementation files('src/libs/accessory-v2.6.1.jar')
-    implementation files('src/libs/sdk-v1.0.0.jar')  // From node_modules
+    implementation files('src/libs/sdk-v1.0.0.jar')
 }
 
 def configureReactNativePom(def pom) {
