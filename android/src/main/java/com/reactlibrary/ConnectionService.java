@@ -1,5 +1,6 @@
 package com.reactlibrary;
 
+import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
@@ -14,11 +15,13 @@ public class ConnectionService extends SAAgentV2 {
     static String TAG = "ConnectionService";
     SA sa = new SA();
     SASocket socket = null;
+    public int agentID = 0;
 
-    protected ConnectionService(String s, Context context) {
+    protected ConnectionService(String s, Context context, int agentID) {
         super(s, context);
         try {
             sa.initialize(context);
+            this.agentID = agentID;
         }catch (final SsdkUnsupportedException e){
             if (e.getType() == SsdkUnsupportedException.LIBRARY_NOT_INSTALLED) { // You should install service application first.
                 Log.d(TAG, "Error -> LIBRARY_NOT_INSTALLED");
@@ -37,7 +40,9 @@ public class ConnectionService extends SAAgentV2 {
         super.onFindPeerAgentsResponse(saPeerAgents, i);
         switch (i) {
             case PEER_AGENT_FOUND:
-                requestServiceConnection(saPeerAgents[0]);
+                for(SAPeerAgent peerAgent : saPeerAgents) {
+                    if(peerAgent.getAccessoryId() == agentID) requestServiceConnection(peerAgent);
+                }
                 break;
             case FINDPEER_DEVICE_NOT_CONNECTED:
                 break;

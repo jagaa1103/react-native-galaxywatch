@@ -8,6 +8,9 @@ import com.facebook.react.bridge.Callback;
 public class GalaxywatchModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
+    private ConnectionService watchService;
+
+    Callback errorCallback;
 
     public GalaxywatchModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -24,4 +27,20 @@ public class GalaxywatchModule extends ReactContextBaseJavaModule {
         // TODO: Implement some actually useful functionality
         callback.invoke("Received numberArgument: " + numberArgument + " stringArgument: " + stringArgument);
     }
+
+    @ReactMethod
+    public void startService(int agentID, Callback callback){
+        try{
+            watchService = new ConnectionService("MyConnectionService", this.reactContext, agentID);
+            if(watchService != null) {
+                watchService.startConnection();
+                callback.invoke();
+            }else{
+                errorCallback.invoke();
+            }
+        }catch(Exception e){
+            errorCallback.invoke();
+        }
+    }
+
 }
