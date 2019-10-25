@@ -22,7 +22,6 @@
                 <action android:name="com.samsung.accessory.action.REGISTER_AGENT" />
             </intent-filter>
         </receiver>
-        <service android:name=".ConnectionService" />
         <meta-data  android:name="AccessoryServicesLocation"  android:value="/res/xml/accessoryservices.xml" />
     </application>
 

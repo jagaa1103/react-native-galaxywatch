@@ -31,15 +31,18 @@ public class GalaxywatchModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void startService(int agentID, Callback callback){
         try{
-            watchService = new ConnectionService("MyConnectionService", this.reactContext, agentID);
+            watchService = new ConnectionService("ConnectionService");
             if(watchService != null) {
-                watchService.startConnection();
-                callback.invoke();
-            }else{
-                errorCallback.invoke();
+                watchService.startConnection(reactContext);
+//                callback.invoke();
             }
+
+//            else{
+//                errorCallback.invoke();
+//            }
         }catch(Exception e){
-            errorCallback.invoke();
+            e.printStackTrace();
+//            errorCallback.invoke();
         }
     }
 

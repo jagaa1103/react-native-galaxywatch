@@ -1,38 +1,40 @@
 package com.reactlibrary;
 
-import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.samsung.android.sdk.SsdkUnsupportedException;
 import com.samsung.android.sdk.accessory.SA;
-import com.samsung.android.sdk.accessory.SAAgentV2;
+import com.samsung.android.sdk.accessory.SAAgent;
 import com.samsung.android.sdk.accessory.SAPeerAgent;
 import com.samsung.android.sdk.accessory.SASocket;
 
-public class ConnectionService extends SAAgentV2 {
-
+public class ConnectionService extends SAAgent {
     static String TAG = "ConnectionService";
-    SA sa = new SA();
+    SA sa = null;
     SASocket socket = null;
     public int agentID = 0;
 
-    protected ConnectionService(String s, Context context, int agentID) {
-        super(s, context);
+    protected ConnectionService(String s) {
+        super(s);
+    }
+
+    public void startConnection(Context context){
         try {
+            sa = new SA();
             sa.initialize(context);
             this.agentID = agentID;
+            findPeerAgents();
         }catch (final SsdkUnsupportedException e){
             if (e.getType() == SsdkUnsupportedException.LIBRARY_NOT_INSTALLED) { // You should install service application first.
-                Log.d(TAG, "Error -> LIBRARY_NOT_INSTALLED");
+                Log.e(TAG, "Error -> LIBRARY_NOT_INSTALLED");
             }
         }catch (Exception e){
             e.printStackTrace();
         }
-    }
-
-    public void startConnection(){
-        findPeerAgents();
     }
 
     @Override
@@ -91,6 +93,12 @@ public class ConnectionService extends SAAgentV2 {
         Log.d(TAG, "message: " + message);
     }
 
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
     class ServiceConnection extends SASocket {
         public ServiceConnection() {
             super(ServiceConnection.class.getName());
@@ -101,13 +109,13 @@ public class ConnectionService extends SAAgentV2 {
         }
         @Override
         public void onReceive(int i, final byte[] bytes) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    receiveFromWatch(bytes.toString());
-                }
-            });
-            thread.start();
+//            Thread thread = new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+            receiveFromWatch(bytes.toString());
+//                }
+//            });
+//            thread.start();
         }
         @Override
         protected void onServiceConnectionLost(int result) {
