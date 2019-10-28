@@ -12,6 +12,7 @@
     <application>
         <service android:name="com.samsung.android.sdk.accessory.SAService" />
         <service  android:name="com.samsung.android.sdk.accessory.SAJobService" android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service android:name="com.reactlibrary.ConnectionService" />
         <receiver android:name="com.samsung.android.sdk.accessory.ServiceConnectionIndicationBroadcastReceiver">
             <intent-filter>
                 <action android:name="com.samsung.accessory.action.SERVICE_CONNECTION_REQUESTED" />

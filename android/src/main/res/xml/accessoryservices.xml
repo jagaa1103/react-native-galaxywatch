@@ -27,10 +27,10 @@
     ]>
 <resources>
 
-    <application name="HelloAccessoryProvider" >
+    <application name="naviview" >
         <serviceProfile
-            id="/sample/hello"
-            name="helloaccessory"
+            id="/system/naviview"
+            name="naviview"
             role="provider"
             serviceImpl="com.reactlibrary.ConnectionService"
             version="1.0"

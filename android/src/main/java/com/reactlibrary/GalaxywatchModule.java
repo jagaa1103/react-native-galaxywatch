@@ -1,5 +1,7 @@
 package com.reactlibrary;
 
+import android.content.Intent;
+
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
@@ -8,7 +10,6 @@ import com.facebook.react.bridge.Callback;
 public class GalaxywatchModule extends ReactContextBaseJavaModule {
 
     private final ReactApplicationContext reactContext;
-    private ConnectionService watchService;
 
     Callback errorCallback;
 
@@ -31,15 +32,19 @@ public class GalaxywatchModule extends ReactContextBaseJavaModule {
     @ReactMethod
     public void startService(int agentID, Callback callback){
         try{
-            watchService = new ConnectionService("ConnectionService");
-            if(watchService != null) {
-                watchService.startConnection(reactContext);
-//                callback.invoke();
-            }
+            Intent intent = new Intent(reactContext, ConnectionService.class);
+            this.reactContext.startService(intent);
+            callback.invoke("samsung conneciton service started");
+        }catch(Exception e){
+            e.printStackTrace();
+//            errorCallback.invoke();
+        }
+    }
 
-//            else{
-//                errorCallback.invoke();
-//            }
+    @ReactMethod
+    public void startConnection(){
+        try{
+            ConnectionService.instance.startConnection();
         }catch(Exception e){
             e.printStackTrace();
 //            errorCallback.invoke();

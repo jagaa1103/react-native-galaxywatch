@@ -1,10 +1,10 @@
 package com.reactlibrary;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import com.samsung.android.sdk.SsdkUnsupportedException;
 import com.samsung.android.sdk.accessory.SA;
@@ -13,21 +13,31 @@ import com.samsung.android.sdk.accessory.SAPeerAgent;
 import com.samsung.android.sdk.accessory.SASocket;
 
 public class ConnectionService extends SAAgent {
+    public static ConnectionService instance;
     static String TAG = "ConnectionService";
     SA sa = null;
     SASocket socket = null;
-    public int agentID = 0;
+    public int agentID = 104;
 
-    protected ConnectionService(String s) {
-        super(s);
+    public ConnectionService() {
+        super("ConnectionService");
     }
 
-    public void startConnection(Context context){
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int i, int i1) {
+        instance = this;
+        return super.onStartCommand(intent, i, i1);
+    }
+
+    public void startService(){
         try {
             sa = new SA();
-            sa.initialize(context);
-            this.agentID = agentID;
-            findPeerAgents();
+            sa.initialize(getApplicationContext());
         }catch (final SsdkUnsupportedException e){
             if (e.getType() == SsdkUnsupportedException.LIBRARY_NOT_INSTALLED) { // You should install service application first.
                 Log.e(TAG, "Error -> LIBRARY_NOT_INSTALLED");
@@ -37,9 +47,13 @@ public class ConnectionService extends SAAgent {
         }
     }
 
+    public void startConnection(){
+        findPeerAgents();
+    }
+
     @Override
     protected void onFindPeerAgentsResponse(SAPeerAgent[] saPeerAgents, int i) {
-        super.onFindPeerAgentsResponse(saPeerAgents, i);
+//        super.onFindPeerAgentsResponse(saPeerAgents, i);
         switch (i) {
             case PEER_AGENT_FOUND:
                 for(SAPeerAgent peerAgent : saPeerAgents) {
@@ -96,6 +110,7 @@ public class ConnectionService extends SAAgent {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        startService();
         return null;
     }
 
@@ -112,7 +127,7 @@ public class ConnectionService extends SAAgent {
 //            Thread thread = new Thread(new Runnable() {
 //                @Override
 //                public void run() {
-            receiveFromWatch(bytes.toString());
+                    receiveFromWatch(bytes.toString());
 //                }
 //            });
 //            thread.start();
