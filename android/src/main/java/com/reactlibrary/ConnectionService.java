@@ -16,7 +16,7 @@ public class ConnectionService extends SAAgent {
     public static ConnectionService instance;
     static String TAG = "ConnectionService";
     SA sa = null;
-    SASocket socket = null;
+    WatchConnection socket = null;
     public int agentID = 104;
 
     public ConnectionService() {
@@ -50,14 +50,16 @@ public class ConnectionService extends SAAgent {
     public void startConnection(){
         findPeerAgents();
     }
-
     @Override
     protected void onFindPeerAgentsResponse(SAPeerAgent[] saPeerAgents, int i) {
-//        super.onFindPeerAgentsResponse(saPeerAgents, i);
         switch (i) {
             case PEER_AGENT_FOUND:
+                Log.d(TAG, "================== onFindPeerAgentsResponse =================");
                 for(SAPeerAgent peerAgent : saPeerAgents) {
-                    if(peerAgent.getAccessoryId() == agentID) requestServiceConnection(peerAgent);
+                    if(peerAgent.getAppName().contains("GolfNavi")) {
+                        Log.d(TAG, "======================= agent found ====================");
+                        requestServiceConnection(peerAgent);
+                    }
                 }
                 break;
             case FINDPEER_DEVICE_NOT_CONNECTED:
@@ -73,7 +75,7 @@ public class ConnectionService extends SAAgent {
     protected void onServiceConnectionRequested(SAPeerAgent saPeerAgent) {
         super.onServiceConnectionRequested(saPeerAgent);
         String productId = saPeerAgent.getAccessory().getProductId();
-        if(productId.equals("GolfNavi")) {
+        if(productId.contains("GolfNavi")) {
             acceptServiceConnectionRequest(saPeerAgent);
         }else{
             rejectServiceConnectionRequest(saPeerAgent);
@@ -82,9 +84,9 @@ public class ConnectionService extends SAAgent {
 
     @Override
     protected void onServiceConnectionResponse(SAPeerAgent saPeerAgent, SASocket saSocket, int result) {
-        super.onServiceConnectionResponse(saPeerAgent, saSocket, result);
         if(result == CONNECTION_SUCCESS || result == CONNECTION_ALREADY_EXIST) {
-            if(saSocket != null) socket = (ServiceConnection)saSocket;
+            Log.d(TAG, "=========== Connected ===========");
+            socket = (WatchConnection) saSocket;
         }else{
             Log.d(TAG, "Connection failed");
         }
@@ -114,16 +116,16 @@ public class ConnectionService extends SAAgent {
         return null;
     }
 
-    class ServiceConnection extends SASocket {
-        public ServiceConnection() {
-            super(ServiceConnection.class.getName());
+    class WatchConnection extends SASocket {
+        public WatchConnection() {
+            super(WatchConnection.class.getName());
         }
         @Override
         public void onError(int i, String s, int i1) {
 
         }
         @Override
-        public void onReceive(int i, final byte[] bytes) {
+        public void onReceive(int channelID, final byte[] bytes) {
 //            Thread thread = new Thread(new Runnable() {
 //                @Override
 //                public void run() {
@@ -134,7 +136,7 @@ public class ConnectionService extends SAAgent {
         }
         @Override
         protected void onServiceConnectionLost(int result) {
-            socket.close();
+            this.close();
         }
     }
 }
