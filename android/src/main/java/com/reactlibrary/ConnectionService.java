@@ -1,55 +1,30 @@
 package com.reactlibrary;
-
+import android.content.Context;
 import android.content.Intent;
-import android.os.IBinder;
 import android.util.Log;
-
-import androidx.annotation.Nullable;
 
 import com.samsung.android.sdk.SsdkUnsupportedException;
 import com.samsung.android.sdk.accessory.SA;
-import com.samsung.android.sdk.accessory.SAAgent;
+import com.samsung.android.sdk.accessory.SAAgentV2;
 import com.samsung.android.sdk.accessory.SAPeerAgent;
 import com.samsung.android.sdk.accessory.SASocket;
 
-public class ConnectionService extends SAAgent {
-    public static ConnectionService instance;
-    static String TAG = "ConnectionService";
-    SA sa = null;
-    WatchConnection socket = null;
-    public int agentID = 104;
+public class WatchService extends SAAgentV2 {
+    static String TAG = "WatchService";
+    private static final Class<ServiceConnection> SASOCKET_CLASS = ServiceConnection.class;
+    ServiceConnection socket;
+    Context mContext = null;
 
-    public ConnectionService() {
-        super("ConnectionService");
+    public WatchService(Context context) {
+        super("NaviNote", context, SASOCKET_CLASS);
+//        super("NaviNote", context);
+        mContext = context;
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int i, int i1) {
-        instance = this;
-        return super.onStartCommand(intent, i, i1);
-    }
-
-    public void startService(){
-        try {
-            sa = new SA();
-            sa.initialize(getApplicationContext());
-        }catch (final SsdkUnsupportedException e){
-            if (e.getType() == SsdkUnsupportedException.LIBRARY_NOT_INSTALLED) { // You should install service application first.
-                Log.e(TAG, "Error -> LIBRARY_NOT_INSTALLED");
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
 
     public void startConnection(){
         findPeerAgents();
-    }
+}
     @Override
     protected void onFindPeerAgentsResponse(SAPeerAgent[] saPeerAgents, int i) {
         switch (i) {
@@ -69,8 +44,6 @@ public class ConnectionService extends SAAgent {
         }
     }
 
-
-
     @Override
     protected void onServiceConnectionRequested(SAPeerAgent saPeerAgent) {
         super.onServiceConnectionRequested(saPeerAgent);
@@ -84,9 +57,9 @@ public class ConnectionService extends SAAgent {
 
     @Override
     protected void onServiceConnectionResponse(SAPeerAgent saPeerAgent, SASocket saSocket, int result) {
-        if(result == CONNECTION_SUCCESS || result == CONNECTION_ALREADY_EXIST) {
+        if(result == SAAgentV2.CONNECTION_SUCCESS || result == SAAgentV2.CONNECTION_ALREADY_EXIST) {
             Log.d(TAG, "=========== Connected ===========");
-            socket = (WatchConnection) saSocket;
+            socket = (ServiceConnection) saSocket;
         }else{
             Log.d(TAG, "Connection failed");
         }
@@ -105,20 +78,9 @@ public class ConnectionService extends SAAgent {
         }
     }
 
-    public void receiveFromWatch(String message){
-        Log.d(TAG, "message: " + message);
-    }
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        startService();
-        return null;
-    }
-
-    class WatchConnection extends SASocket {
-        public WatchConnection() {
-            super(WatchConnection.class.getName());
+    class ServiceConnection extends SASocket {
+        public ServiceConnection() {
+            super(ServiceConnection.class.getName());
         }
         @Override
         public void onError(int i, String s, int i1) {
@@ -126,13 +88,16 @@ public class ConnectionService extends SAAgent {
         }
         @Override
         public void onReceive(int channelID, final byte[] bytes) {
-//            Thread thread = new Thread(new Runnable() {
-//                @Override
-//                public void run() {
-                    receiveFromWatch(bytes.toString());
-//                }
-//            });
-//            thread.start();
+            try{
+                String message = new String(bytes, "UTF-8");
+                Intent intent = new Intent();
+                intent.setAction("fromWatch");
+                intent.putExtra("message", message);
+                if(mContext != null) mContext.sendBroadcast(intent);
+            }catch(Exception err){
+                err.printStackTrace();
+            }
+
         }
         @Override
         protected void onServiceConnectionLost(int result) {
