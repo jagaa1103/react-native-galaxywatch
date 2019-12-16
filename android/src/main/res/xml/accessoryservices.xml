@@ -32,7 +32,7 @@
             id="/system/naviview"
             name="naviview"
             role="provider"
-            serviceImpl="com.reactlibrary.ConnectionService"
+            serviceImpl="com.reactlibrary.WatchService"
             version="1.0"
             serviceLimit="ANY"
             serviceTimeout="10">

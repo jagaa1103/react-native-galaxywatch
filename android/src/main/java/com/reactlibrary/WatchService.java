@@ -24,7 +24,7 @@ public class WatchService extends SAAgentV2 {
 
     public void startConnection(){
         findPeerAgents();
-}
+    }
     @Override
     protected void onFindPeerAgentsResponse(SAPeerAgent[] saPeerAgents, int i) {
         switch (i) {
