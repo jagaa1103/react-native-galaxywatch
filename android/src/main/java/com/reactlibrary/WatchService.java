@@ -15,15 +15,19 @@ public class WatchService extends SAAgentV2 {
     ServiceConnection socket;
     Context mContext = null;
 
+    SAPeerAgent myAgent = null;
+
     public WatchService(Context context) {
         super("NaviNote", context, SASOCKET_CLASS);
-//        super("NaviNote", context);
         mContext = context;
     }
 
 
-    public void startConnection(){
+    public void start(){
         findPeerAgents();
+    }
+    public void connect(){
+        requestServiceConnection(myAgent);
     }
     @Override
     protected void onFindPeerAgentsResponse(SAPeerAgent[] saPeerAgents, int i) {
@@ -33,13 +37,18 @@ public class WatchService extends SAAgentV2 {
                 for(SAPeerAgent peerAgent : saPeerAgents) {
                     if(peerAgent.getAppName().contains("GolfNavi")) {
                         Log.d(TAG, "======================= agent found ====================");
-                        requestServiceConnection(peerAgent);
+                        myAgent = peerAgent;
+                        sendToPhone("{\"msgId\": \"SAP_CONNECTED\", \"device\": \"" + peerAgent.getAccessory().getProductId() + "\"}");
                     }
                 }
                 break;
             case FINDPEER_DEVICE_NOT_CONNECTED:
+                Log.d(TAG, "FINDPEER_DEVICE_NOT_CONNECTED");
+                sendToPhone("{\"msgId\": \"FINDPEER_DEVICE_NOT_CONNECTED\"}");
                 break;
             case FINDPEER_SERVICE_NOT_FOUND:
+                Log.d(TAG, "FINDPEER_SERVICE_NOT_FOUND");
+                sendToPhone("{\"msgId\": \"FINDPEER_SERVICE_NOT_FOUND\"}");
                 break;
         }
     }
@@ -60,13 +69,23 @@ public class WatchService extends SAAgentV2 {
         if(result == SAAgentV2.CONNECTION_SUCCESS || result == SAAgentV2.CONNECTION_ALREADY_EXIST) {
             Log.d(TAG, "=========== Connected ===========");
             socket = (ServiceConnection) saSocket;
+        }else if (result == SAAgentV2.CONNECTION_FAILURE_DEVICE_UNREACHABLE){
+            Log.d(TAG, "=========== Device Unreachable ===========");
+            myAgent = null;
+        }else if (result == SAAgentV2.CONNECTION_FAILURE_PEERAGENT_NO_RESPONSE) {
+            Log.d(TAG, "=========== Device PeerAgent no response ===========");
+            myAgent = null;
+        }else if (result == SAAgentV2.AUTHENTICATION_FAILURE_PEER_AGENT_NOT_SUPPORTED){
+            Log.d(TAG, "=========== Authentication failure ===========");
+            myAgent = null;
         }else{
             Log.d(TAG, "Connection failed");
+            myAgent = null;
         }
     }
 
     public void sendToWatch(String message){
-        int channelID = 123;
+        int channelID = 104;
         if(socket != null) {
             try{
                 socket.send(channelID, message.getBytes());
@@ -90,18 +109,21 @@ public class WatchService extends SAAgentV2 {
         public void onReceive(int channelID, final byte[] bytes) {
             try{
                 String message = new String(bytes, "UTF-8");
-                Intent intent = new Intent();
-                intent.setAction("fromWatch");
-                intent.putExtra("message", message);
-                if(mContext != null) mContext.sendBroadcast(intent);
+                sendToPhone(message);
             }catch(Exception err){
                 err.printStackTrace();
             }
-
         }
         @Override
         protected void onServiceConnectionLost(int result) {
             this.close();
         }
+    }
+
+    private void sendToPhone(String message){
+        Intent intent = new Intent();
+        intent.setAction("fromWatch");
+        intent.putExtra("message", message);
+        if(mContext != null) mContext.sendBroadcast(intent);
     }
 }

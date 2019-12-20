@@ -31,6 +31,9 @@ public class GalaxywatchModule extends ReactContextBaseJavaModule {
     public GalaxywatchModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
+        IntentFilter filter = new IntentFilter("fromWatch");
+        reactContext.registerReceiver(receiver, filter);
+        SAAgentV2.requestAgent(reactContext, WatchService.class.getName(), mAgentCallback);
     }
 
     @Override
@@ -38,13 +41,11 @@ public class GalaxywatchModule extends ReactContextBaseJavaModule {
         return "Galaxywatch";
     }
 
+
     @ReactMethod
-    public void startService(int agentID, Callback callback){
+    public void start(){
         try{
-            IntentFilter filter = new IntentFilter("fromWatch");
-            reactContext.registerReceiver(receiver, filter);
-            SAAgentV2.requestAgent(reactContext, WatchService.class.getName(), mAgentCallback);
-            callback.invoke("samsung conneciton service started");
+            watchService.start();
         }catch(Exception e){
             e.printStackTrace();
 //            errorCallback.invoke();
@@ -52,13 +53,18 @@ public class GalaxywatchModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void startConnection(){
+    public void connect(){
         try{
-            watchService.startConnection();
+            watchService.connect();
         }catch(Exception e){
             e.printStackTrace();
 //            errorCallback.invoke();
         }
+    }
+
+    @ReactMethod
+    public void sendToWatch(String message){
+        watchService.sendToWatch(message);
     }
 
     BroadcastReceiver receiver = new BroadcastReceiver() {
